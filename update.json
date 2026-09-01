@@ -1,7 +1,7 @@
 {
   "version": "0.1.14",
   "downloadUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/download/v0.1.14/JC.exe",
-  "sha256": "22f1ff452653500f2b3d966bfa07eed7607cbe24db5af3ec221235ad71f31a2a",
+  "sha256": "62b825489c3b57dde171d55ff259d279298355303d29bb4d6f2a2a7bedfc60e7",
   "pageUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/tag/v0.1.14",
   "notes": "新增 GitHub 公开通道自动更新：二次确认后由独立更新器关闭旧程序、下载校验、原位替换并重启。"
 }
