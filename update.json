@@ -1,8 +1,8 @@
 {
-  "version": "0.2.14",
-  "downloadUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/download/v0.2.14/JC.exe",
-  "sha256": "2d4a023ac66a62cf3e7962ca5d734363d3158d681d3c67787b3a34e577144c1a",
-  "pageUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/tag/v0.2.14",
+  "version": "0.2.15",
+  "downloadUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/download/v0.2.15/JC.exe",
+  "sha256": "161813aed53d2a744c57ca80c29f3cc0123f846d038bb3d351cfb7436a687029",
+  "pageUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/tag/v0.2.15",
   "isMajorUpdate": false,
-  "notes": "任务胶囊完成态与视觉精修\n\n• 任务胶囊默认展示最近 3 个运行中任务和最近 2 个已完成任务；没有运行任务时只保留最近完成的 2 个。\n• 完成时间写入任务数据，刷新或重启后仍按真实完成先后排序；旧画布会从结果时间兼容推断。\n• 重做胶囊文字层级和视觉基线：通道、任务名、状态各自分层，避免挤在同一字符框内。\n• 为等待、发送、生成、需处理和完成状态建立克制的独立色彩，完成项使用安静的绿色完成态。\n• 胶囊进一步收窄，窄屏自动换行；折叠后只显示精简计数，仍不预留或遮挡整块画布区域。\n• 点击任意运行中或最近完成胶囊都可定位回对应任务节点。\n• 不改变 GPT、Gemini、Google AI Studio 的运行、结果回传、下载、用户数据目录或登录 Profile。\n\n验证：隔离 Chromium 320–1920px 已通过数量上限、完成排序、基线、窄屏换行、折叠、定位和零占位回归；Payload 来源一致性、数据安全门禁和 .NET 构建已通过。真实 Windows 登录、生成、下载和原位更新未代为执行。"
+  "notes": "修复 AI Studio 首次运行没有真正打开工作窗口\n\n• 修复 AI Studio 从未打开过时，首次任务只显示“正在发送”但真实 WebView2 工作窗口未形成可操作页面的问题。\n• 首次命令前必须同时确认原生窗口句柄、窗口可见状态、WebView2 初始化和非零页面视口；任一证据缺失都不会误报任务已开始。\n• 每次 AI Studio 页面命令前恢复后台窗口合成并等待渲染完成，替代依赖第二次运行预热页面。\n• 命令登记后继续观察真实执行阶段；如果页面长期停在 preparing，会清理本轮页面状态并自动重试一次，不再无限卡住。\n• 画布状态改为显示模型配置、上传、提示词写入、Run 定位或真实请求确认等具体步骤。\n• 修复严格限定在 AI Studio 原生窗口链路，不改变 ChatGPT、Gemini 的窗口准备、任务运行和下载逻辑。\n• 不改变画布存档、用户数据目录、三个通道登录 Profile 或保存目录。\n\n验证：AI Studio 首次窗口顺序回归、JavaScript 语法、.NET 编译、Payload 来源一致性和数据安全门禁已通过。由于当前 Windows 自动化工具受 WSL 工作区路径限制，真实登录状态下的首次生成仍需用户更新后验证。"
 }
