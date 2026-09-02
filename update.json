@@ -1,7 +1,8 @@
 {
-  "version": "0.1.18",
-  "downloadUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/download/v0.1.18/JC.exe",
-  "sha256": "e8cbded685649f017fedcc454af51b8b3fd9a848d594e166dc44b9963e55c44f",
-  "pageUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/tag/v0.1.18",
-  "notes": "新增 GitHub 公开通道自动更新：二次确认后由独立更新器关闭旧程序、下载校验、原位替换并重启。"
+  "version": "0.2.14",
+  "downloadUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/download/v0.2.14/JC.exe",
+  "sha256": "2d4a023ac66a62cf3e7962ca5d734363d3158d681d3c67787b3a34e577144c1a",
+  "pageUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/tag/v0.2.14",
+  "isMajorUpdate": false,
+  "notes": "任务胶囊完成态与视觉精修\n\n• 任务胶囊默认展示最近 3 个运行中任务和最近 2 个已完成任务；没有运行任务时只保留最近完成的 2 个。\n• 完成时间写入任务数据，刷新或重启后仍按真实完成先后排序；旧画布会从结果时间兼容推断。\n• 重做胶囊文字层级和视觉基线：通道、任务名、状态各自分层，避免挤在同一字符框内。\n• 为等待、发送、生成、需处理和完成状态建立克制的独立色彩，完成项使用安静的绿色完成态。\n• 胶囊进一步收窄，窄屏自动换行；折叠后只显示精简计数，仍不预留或遮挡整块画布区域。\n• 点击任意运行中或最近完成胶囊都可定位回对应任务节点。\n• 不改变 GPT、Gemini、Google AI Studio 的运行、结果回传、下载、用户数据目录或登录 Profile。\n\n验证：隔离 Chromium 320–1920px 已通过数量上限、完成排序、基线、窄屏换行、折叠、定位和零占位回归；Payload 来源一致性、数据安全门禁和 .NET 构建已通过。真实 Windows 登录、生成、下载和原位更新未代为执行。"
 }
