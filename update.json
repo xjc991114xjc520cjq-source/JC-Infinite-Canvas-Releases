@@ -1,8 +1,8 @@
 {
-  "version": "0.2.15",
-  "downloadUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/download/v0.2.15/JC.exe",
-  "sha256": "161813aed53d2a744c57ca80c29f3cc0123f846d038bb3d351cfb7436a687029",
-  "pageUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/tag/v0.2.15",
+  "version": "0.2.25",
+  "downloadUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/download/v0.2.25/JC.exe",
+  "sha256": "eac2bfce33327dca7a9f92a7035ab40cc52f12ca477730dee90d41c3ef8cb691",
+  "pageUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/tag/v0.2.25",
   "isMajorUpdate": false,
-  "notes": "修复 AI Studio 首次运行没有真正打开工作窗口\n\n• 修复 AI Studio 从未打开过时，首次任务只显示“正在发送”但真实 WebView2 工作窗口未形成可操作页面的问题。\n• 首次命令前必须同时确认原生窗口句柄、窗口可见状态、WebView2 初始化和非零页面视口；任一证据缺失都不会误报任务已开始。\n• 每次 AI Studio 页面命令前恢复后台窗口合成并等待渲染完成，替代依赖第二次运行预热页面。\n• 命令登记后继续观察真实执行阶段；如果页面长期停在 preparing，会清理本轮页面状态并自动重试一次，不再无限卡住。\n• 画布状态改为显示模型配置、上传、提示词写入、Run 定位或真实请求确认等具体步骤。\n• 修复严格限定在 AI Studio 原生窗口链路，不改变 ChatGPT、Gemini 的窗口准备、任务运行和下载逻辑。\n• 不改变画布存档、用户数据目录、三个通道登录 Profile 或保存目录。\n\n验证：AI Studio 首次窗口顺序回归、JavaScript 语法、.NET 编译、Payload 来源一致性和数据安全门禁已通过。由于当前 Windows 自动化工具受 WSL 工作区路径限制，真实登录状态下的首次生成仍需用户更新后验证。"
+  "notes": "• 修复多窗口情况下，画布最小化后被立即拉回的问题。\n• 保留任务栏还原时优先显示画布、真实对话窗口可独立唤起的行为。\n\n更新前请保存画布。仅在你确认后下载安装。"
 }
