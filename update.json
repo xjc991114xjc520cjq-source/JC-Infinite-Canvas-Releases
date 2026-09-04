@@ -1,8 +1,8 @@
 {
-  "version": "0.2.26",
-  "downloadUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/download/v0.2.26/JC.exe",
-  "sha256": "68b2e1d22691e2c26ab503d739e058b0ef5de25bd025da5b0a6c31593e080f10",
-  "pageUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/tag/v0.2.26",
+  "version": "0.2.27",
+  "downloadUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/download/v0.2.27/JC.exe",
+  "sha256": "b721a095d8f9a523eda2900db7b2866378d5aaa14b9ec686b4e6dd99a343b256",
+  "pageUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/tag/v0.2.27",
   "isMajorUpdate": false,
-  "notes": "• 扩大节点拉绳端口的鼠标识别范围，更容易起线。\n• 扩大拉绳靠近端口时的自动吸附范围，减少拖线落空。\n• 可见端点保持原尺寸，不增加画布视觉干扰。\n\n更新前请保存画布。仅在你确认后下载安装。"
+  "notes": "• 框选多个任意节点后，可用框选右侧统一拉绳直接连接到已有任务。\n• 拖到空白处仍会新建任务并自动接入所选内容。\n• 自动排除自连、重复来源和非任务目标，并保持任务输入顺序。\n\n更新前请保存画布。仅在你确认后下载安装。"
 }
