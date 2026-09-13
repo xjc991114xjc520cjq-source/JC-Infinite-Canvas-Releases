@@ -1,8 +1,8 @@
 {
-  "version": "0.2.27",
-  "downloadUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/download/v0.2.27/JC.exe",
-  "sha256": "b721a095d8f9a523eda2900db7b2866378d5aaa14b9ec686b4e6dd99a343b256",
-  "pageUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/tag/v0.2.27",
+  "version": "0.2.28",
+  "downloadUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/download/v0.2.28/JC.exe",
+  "sha256": "d038eed73b3fb119161d8d22fc19d79eb8bb0ae6d517440cb0d63ad9cfee6307",
+  "pageUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/tag/v0.2.28",
   "isMajorUpdate": false,
-  "notes": "• 框选多个任意节点后，可用框选右侧统一拉绳直接连接到已有任务。\n• 拖到空白处仍会新建任务并自动接入所选内容。\n• 自动排除自连、重复来源和非任务目标，并保持任务输入顺序。\n\n更新前请保存画布。仅在你确认后下载安装。"
+  "notes": "• 修复服务窗口最大化后隐藏，再执行后台任务时直接报错的问题。\n• 修复主画布最小化还原时，最大化服务窗口可能触发的同类冲突。\n• 后台运行仍不抢占焦点，用户主动打开时会恢复原最大化状态。\n\n更新前请保存画布。仅在你确认后下载安装。"
 }
