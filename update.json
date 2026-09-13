@@ -1,8 +1,8 @@
 {
-  "version": "0.2.29",
-  "downloadUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/download/v0.2.29/JC.exe",
-  "sha256": "486078e855f3af5a5d9e684dfa622dda12758448adb8d08eeb05e3e83754c134",
-  "pageUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/tag/v0.2.29",
+  "version": "0.2.30",
+  "downloadUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/download/v0.2.30/JC.exe",
+  "sha256": "7f9b5f955b9c9128e25571c3465e952d359960a73b46d0b379bc0ecf17e17c16",
+  "pageUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/tag/v0.2.30",
   "isMajorUpdate": false,
-  "notes": "• 修复任务节点里的下拉选项和按钮文字变成蓝色选中状态的问题。\n• 在画布非编辑区按 Ctrl+A 现在会选择全部节点，不再全选网页文字。\n• 提示词和文字编辑框内仍可正常选字、复制和编辑。\n\n更新前请保存画布。仅在你确认后下载安装。"
+  "notes": "• 修复 Gemini 未登录状态可能无法识别的问题。\n• ChatGPT、Gemini、AI Studio 检测到未登录时，统一显示画布风格的登录提示。\n• 弹窗会说明如何移开画布并在后置服务窗口完成登录，同一任务不会重复打扰。\n\n更新前请保存画布。仅在你确认后下载安装。"
 }
