@@ -1,8 +1,8 @@
 {
-  "version": "0.2.30",
-  "downloadUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/download/v0.2.30/JC.exe",
-  "sha256": "7f9b5f955b9c9128e25571c3465e952d359960a73b46d0b379bc0ecf17e17c16",
-  "pageUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/tag/v0.2.30",
+  "version": "0.2.31",
+  "downloadUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/download/v0.2.31/JC.exe",
+  "sha256": "0b3d4578b7fcc3792e743f7ac89352c83d24c838565ea621d453d66f76f69e39",
+  "pageUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/tag/v0.2.31",
   "isMajorUpdate": false,
-  "notes": "• 修复 Gemini 未登录状态可能无法识别的问题。\n• ChatGPT、Gemini、AI Studio 检测到未登录时，统一显示画布风格的登录提示。\n• 弹窗会说明如何移开画布并在后置服务窗口完成登录，同一任务不会重复打扰。\n\n更新前请保存画布。仅在你确认后下载安装。"
+  "notes": "• 修复 Google AI Studio 真实页面已完成、画布仍停留在生成中的问题。\n• 手动刷新可重新识别同一页面中已结束的任务，并恢复尚未回传的生成结果。\n• 增强 AI Studio 页面结构变化后的结果图片识别，同时继续排除参考图。\n\n更新前请保存画布。仅在你确认后下载安装。"
 }
