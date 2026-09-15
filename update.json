@@ -1,8 +1,8 @@
 {
-  "version": "0.2.35",
-  "downloadUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/download/v0.2.35/JC.exe",
-  "sha256": "498c6b6f6aa0f80657b9850653af6fde1c44b9955a9dea3eb59ad2b79112f92e",
-  "pageUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/tag/v0.2.35",
+  "version": "0.2.36",
+  "downloadUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/download/v0.2.36/JC.exe",
+  "sha256": "1bfcdaaecf7f01bc6f7196d5364f7989aa717054e9a33f5ac7afeebccdaaa42e",
+  "pageUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/tag/v0.2.36",
   "isMajorUpdate": false,
-  "notes": "• 修复 ChatGPT 页面改版后隐藏附件模板被误判为上传成功，导致任务只填文字、图片和提示词文档没有真正上传的问题。\n• 附件会按文件输入、粘贴、拖放三条通道自动重试；没有发现真实可见附件时会停止，不再继续只发送文字。\n• 收紧 ChatGPT 发送按钮识别，避免误选语音发送控件。\n• 首次启动改为按当前屏幕可用区域的 78% 自适应，并记住上一次手动调整后的窗口大小；切换到小屏幕时自动限制在可见范围内。\n\n更新前请保存画布。仅在你确认后下载安装。"
+  "notes": "• 修复 AI Studio 新版 Playground 将已选模型改为右侧模型卡片后，任务停在等待运行、真实页面没有上传或填词的问题。\n• 模型确认阶段现在会立即登记真实进度，不再被后台当作未启动任务提前取消。\n• 同时包含 v0.2.35 的 ChatGPT 附件真实可见性、发送按钮与窗口自适应/尺寸记忆修复。\n\n更新前请保存画布。仅在你确认后下载安装。"
 }
