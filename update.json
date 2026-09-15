@@ -1,8 +1,8 @@
 {
-  "version": "0.2.33",
-  "downloadUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/download/v0.2.33/JC.exe",
-  "sha256": "c01e76ba75ab37811839674e2e9e357b7d53ae6095103fb5635ae21697c74bdc",
-  "pageUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/tag/v0.2.33",
+  "version": "0.2.34",
+  "downloadUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/download/v0.2.34/JC.exe",
+  "sha256": "0224c5e68d457fef5dce51c191c957a5982c6086901dc05525805da2735da0f1",
+  "pageUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/tag/v0.2.34",
   "isMajorUpdate": false,
-  "notes": "• 修复点击结果图片下载时，临时闪现“移到任务旁”按钮的问题。\n• 下载按钮不再误选中结果节点；主动选中节点时，归位功能仍可正常使用。\n\n更新前请保存画布。仅在你确认后下载安装。"
+  "notes": "• 修复 GPT 原图读取超时时出现无原因 AbortError 的问题，超时后会自动重试。\n• 修复 GPT 已完成生图却将网页满意度问句误存为画布文字结果的问题。\n• 图片任务的普通网络或回传错误不再携带页面杂音创建文字卡片。\n\n更新前请保存画布。仅在你确认后下载安装。"
 }
