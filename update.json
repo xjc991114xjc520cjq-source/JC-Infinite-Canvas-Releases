@@ -1,8 +1,8 @@
 {
-  "version": "0.2.32",
-  "downloadUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/download/v0.2.32/JC.exe",
-  "sha256": "686a7753c1b03be66965f827b000960d0dbf182ce69ea87238805886f04d8e8a",
-  "pageUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/tag/v0.2.32",
+  "version": "0.2.33",
+  "downloadUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/download/v0.2.33/JC.exe",
+  "sha256": "c01e76ba75ab37811839674e2e9e357b7d53ae6095103fb5635ae21697c74bdc",
+  "pageUrl": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/tag/v0.2.33",
   "isMajorUpdate": false,
-  "notes": "• 修复 Google AI Studio 真实页面已完成、画布仍停留在生成中的问题。\n• 更新重启后，手动刷新可用节点完整提示词精确匹配真实任务页并恢复结果。\n• 增强 AI Studio 页面结构变化后的结果图片识别，同时继续排除参考图。\n\n更新前请保存画布。仅在你确认后下载安装。"
+  "notes": "• 修复点击结果图片下载时，临时闪现“移到任务旁”按钮的问题。\n• 下载按钮不再误选中结果节点；主动选中节点时，归位功能仍可正常使用。\n\n更新前请保存画布。仅在你确认后下载安装。"
 }
