@@ -23,10 +23,12 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $inputSpec = Get-Content mac-build-input.json -Raw | ConvertFrom-Json
-          gh release download $inputSpec.tag --repo $env:GITHUB_REPOSITORY --pattern 'mac-source.zip' --dir input
+          $asset = if ($inputSpec.asset) { $inputSpec.asset } else { 'mac-source.zip' }
+          gh release download $inputSpec.tag --repo $env:GITHUB_REPOSITORY --pattern $asset --dir input
           if ($LASTEXITCODE -ne 0) { throw 'Draft source download failed' }
-          if ((Get-FileHash input/mac-source.zip -Algorithm SHA256).Hash.ToLowerInvariant() -ne $inputSpec.sha256) { throw 'Source hash mismatch' }
-          Expand-Archive input/mac-source.zip source
+          $archive = Join-Path 'input' $asset
+          if ((Get-FileHash $archive -Algorithm SHA256).Hash.ToLowerInvariant() -ne $inputSpec.sha256) { throw 'Source hash mismatch' }
+          Expand-Archive $archive source
           if ((node -p process.arch) -ne 'arm64') { throw 'Apple Silicon runner required' }
       - name: Install clean Mac dependencies
         working-directory: source/mac-app
@@ -64,9 +66,12 @@ jobs:
           $app = Join-Path $PWD 'dist/mac-arm64/无限画布.app'
           codesign --verify --deep --strict --verbose=2 $app
           if ($LASTEXITCODE -ne 0) { throw 'Bundle integrity signature verification failed' }
+          $env:JC_MAC_SMOKE_APP = Join-Path $app 'Contents/MacOS/无限画布'
+          node tests/smoke.cjs
+          if ($LASTEXITCODE -ne 0) { throw 'Packaged Mac application smoke failed' }
           $assessment = & spctl --assess --type execute --verbose=4 $app 2>&1 | Out-String
           $accepted = $LASTEXITCODE -eq 0
-          $report = @{ builtAt=(Get-Date).ToUniversalTime().ToString('o'); run=$env:GITHUB_RUN_ID; architecture='arm64'; renderer='passed'; codesign='passed'; developerId=$false; notarized=$false; gatekeeperAccepted=$accepted; assessment=$assessment; userInstallation='not-tested'; liveProviders='not-tested'; liveApi='not-tested' }
+          $report = @{ builtAt=(Get-Date).ToUniversalTime().ToString('o'); run=$env:GITHUB_RUN_ID; architecture='arm64'; renderer='passed'; packagedApp='passed'; codesign='passed'; developerId=$false; notarized=$false; gatekeeperAccepted=$accepted; assessment=$assessment; userInstallation='not-tested'; liveProviders='not-tested'; liveApi='not-tested' }
           $report | ConvertTo-Json -Depth 5 | Set-Content dist/mac-validation.json -Encoding utf8
           Get-ChildItem dist -Filter '*.zip' | ForEach-Object { (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant() + '  ' + $_.Name } | Set-Content dist/SHA256SUMS.txt
           Copy-Item native-device-report.json dist/
