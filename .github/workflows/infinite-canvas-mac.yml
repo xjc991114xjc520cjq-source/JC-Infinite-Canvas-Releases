@@ -114,7 +114,7 @@ jobs:
             if($LASTEXITCODE -ne 0){throw 'Mac draft creation failed'}
           }
           $draftId=gh release view $releaseTag --repo $env:GITHUB_REPOSITORY --json databaseId --jq .databaseId
-          gh api -X PATCH "repos/$env:GITHUB_REPOSITORY/releases/$draftId" -f "target_commitish=$env:GITHUB_SHA" -f 'make_latest=false' | Out-Null
+          gh api -X PATCH "repos/$env:GITHUB_REPOSITORY/releases/$draftId" -f "tag_name=$releaseTag" -f "target_commitish=$env:GITHUB_SHA" -f 'make_latest=false' | Out-Null
           if($LASTEXITCODE -ne 0){throw 'Mac draft target update failed'}
           $dmg=Get-ChildItem dist -Filter '*.dmg' -File|Select-Object -First 1
           $hash=(Get-FileHash $dmg.FullName).Hash.ToLowerInvariant()+'  '+$dmg.Name
