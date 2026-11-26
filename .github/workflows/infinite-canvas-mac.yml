@@ -51,6 +51,10 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Swift build failed' }
           codesign --force --sign - native/build/jc-canvas-device
           if ($LASTEXITCODE -ne 0) { throw 'Helper signature failed' }
+          xcrun swiftc -O -target arm64-apple-macosx13.0 native/updater.swift -o native/build/jc-canvas-updater
+          if ($LASTEXITCODE -ne 0) { throw 'Updater Swift build failed' }
+          codesign --force --sign - native/build/jc-canvas-updater
+          if ($LASTEXITCODE -ne 0) { throw 'Updater signature failed' }
           node --test tests/core.test.cjs tests/updater.test.cjs tests/download-fetch.test.cjs
           if ($LASTEXITCODE -ne 0) { throw 'Core tests failed' }
           $env:JC_MAC_DEVICE_HELPER = Join-Path $PWD 'native/build/jc-canvas-device'
