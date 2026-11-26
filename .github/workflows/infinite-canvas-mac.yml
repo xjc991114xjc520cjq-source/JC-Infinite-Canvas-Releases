@@ -43,6 +43,16 @@ jobs:
         working-directory: source/mac-app
         run: |
           New-Item native/build -ItemType Directory -Force | Out-Null
+          New-Item native/build/AppIcon.iconset -ItemType Directory -Force | Out-Null
+          foreach($size in @(16,32,128,256,512)) {
+            sips -z $size $size web/brand-logo.png --out "native/build/AppIcon.iconset/icon_${size}x${size}.png" | Out-Null
+            if($LASTEXITCODE -ne 0){throw 'Icon resize failed'}
+            $retina=$size*2
+            sips -z $retina $retina web/brand-logo.png --out "native/build/AppIcon.iconset/icon_${size}x${size}@2x.png" | Out-Null
+            if($LASTEXITCODE -ne 0){throw 'Retina icon resize failed'}
+          }
+          iconutil -c icns native/build/AppIcon.iconset -o native/build/AppIcon.icns
+          if($LASTEXITCODE -ne 0){throw 'Mac icon compilation failed'}
           xcrun swiftc -O -target arm64-apple-macosx13.0 native/device.swift -o native/build/jc-canvas-device
           if ($LASTEXITCODE -ne 0) { throw 'Swift build failed' }
           codesign --force --sign - native/build/jc-canvas-device
@@ -61,9 +71,18 @@ jobs:
       - name: Build candidate and assess distribution separately
         working-directory: source/mac-app
         run: |
-          node node_modules/electron-builder/cli.js --mac zip --arm64 --publish never
+          node node_modules/electron-builder/cli.js --mac dmg zip --arm64 --publish never
           if ($LASTEXITCODE -ne 0) { throw 'Mac packaging failed' }
           $app = Join-Path $PWD 'dist/mac-arm64/无限画布.app'
+          $plist=Join-Path $app 'Contents/Info.plist'
+          $version=& /usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' $plist
+          $expected=(Get-Content package.json -Raw|ConvertFrom-Json).version
+          if($version -ne $expected){throw 'Bundle version mismatch'}
+          $executable=& /usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' $plist
+          if(-not (Test-Path (Join-Path $app "Contents/MacOS/$executable"))){throw 'Finder entrypoint missing'}
+          $icon=& /usr/libexec/PlistBuddy -c 'Print :CFBundleIconFile' $plist
+          if((Get-FileHash (Join-Path $app "Contents/Resources/$icon")).Hash -ne (Get-FileHash native/build/AppIcon.icns).Hash){throw 'Bundle icon differs from current logo'}
+          Copy-Item web/source-manifest.json dist/
           codesign --verify --deep --strict --verbose=2 $app
           if ($LASTEXITCODE -ne 0) { throw 'Bundle integrity signature verification failed' }
           $env:JC_MAC_SMOKE_APP = Join-Path $app 'Contents/MacOS/无限画布'
@@ -73,7 +92,10 @@ jobs:
           $accepted = $LASTEXITCODE -eq 0
           $report = @{ builtAt=(Get-Date).ToUniversalTime().ToString('o'); run=$env:GITHUB_RUN_ID; architecture='arm64'; renderer='passed'; packagedApp='passed'; codesign='passed'; developerId=$false; notarized=$false; gatekeeperAccepted=$accepted; assessment=$assessment; userInstallation='not-tested'; liveProviders='not-tested'; liveApi='not-tested' }
           $report | ConvertTo-Json -Depth 5 | Set-Content dist/mac-validation.json -Encoding utf8
-          Get-ChildItem dist -Filter '*.zip' | ForEach-Object { (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant() + '  ' + $_.Name } | Set-Content dist/SHA256SUMS.txt
+          Get-ChildItem dist -File | Where-Object Extension -In @('.zip','.dmg') | ForEach-Object { (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant() + '  ' + $_.Name } | Set-Content dist/SHA256SUMS.txt
+          $report|Add-Member -NotePropertyName bundleVersion -NotePropertyValue $version
+          $report|Add-Member -NotePropertyName currentIconVerified -NotePropertyValue $true
+          $report|ConvertTo-Json -Depth 5|Set-Content dist/mac-validation.json -Encoding utf8
           Copy-Item native-device-report.json dist/
           $global:LASTEXITCODE = 0
       - uses: actions/upload-artifact@v4
@@ -82,6 +104,7 @@ jobs:
           name: infinite-canvas-mac-arm64-validation
           path: |
             source/mac-app/dist/*.zip
+            source/mac-app/dist/*.dmg
             source/mac-app/dist/*.json
             source/mac-app/dist/*.txt
             source/mac-app/test-results/*.png
