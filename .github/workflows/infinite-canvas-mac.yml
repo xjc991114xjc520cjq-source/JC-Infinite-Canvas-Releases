@@ -51,7 +51,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Swift build failed' }
           codesign --force --sign - native/build/jc-canvas-device
           if ($LASTEXITCODE -ne 0) { throw 'Helper signature failed' }
-          node --test tests/core.test.cjs tests/updater.test.cjs
+          node --test tests/core.test.cjs tests/updater.test.cjs tests/download-fetch.test.cjs
           if ($LASTEXITCODE -ne 0) { throw 'Core tests failed' }
           $env:JC_MAC_DEVICE_HELPER = Join-Path $PWD 'native/build/jc-canvas-device'
           node tests/native-device.cjs | Tee-Object native-device-report.json
