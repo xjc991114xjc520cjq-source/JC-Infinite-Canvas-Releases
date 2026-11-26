@@ -1,5 +1,19 @@
 [
   {
+    "draft": false,
+    "assets": [
+      {
+        "name": "InfiniteCanvas-3.1.61-mac.7-arm64.dmg",
+        "browser_download_url": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/download/mac-v3.1.61-mac.7/InfiniteCanvas-3.1.61-mac.7-arm64.dmg",
+        "digest": "sha256:74e2cc92bcb80eef5b3d31edab3fd00d0a0bfe77387a8a0d35a75709a2c2846a",
+        "size": 124321890
+      }
+    ],
+    "prerelease": false,
+    "html_url": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/tag/mac-v3.1.61-mac.7"
+  },
+  {
+    "draft": false,
     "assets": [
       {
         "name": "InfiniteCanvas-3.1.61-mac.6-arm64.dmg",
@@ -8,8 +22,7 @@
         "size": 124312039
       }
     ],
-    "draft": false,
-    "html_url": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/tag/mac-v3.1.61-mac.6",
-    "prerelease": false
+    "prerelease": false,
+    "html_url": "https://github.com/xjc991114xjc520cjq-source/JC-Infinite-Canvas-Releases/releases/tag/mac-v3.1.61-mac.6"
   }
 ]
