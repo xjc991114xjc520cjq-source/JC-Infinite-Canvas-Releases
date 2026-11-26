@@ -1,0 +1,95 @@
+name: Infinite Canvas Mac repair validation
+on:
+  push:
+    branches: ['codex/mac-port-*']
+    paths: ['.github/workflows/infinite-canvas-mac-repair.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  repair:
+    runs-on: macos-15
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: infinite-canvas-mac-arm64-validation
+          github-token: ${{ github.token }}
+          run-id: 45743630319
+          path: input
+      - name: Validate scoped xattr repair on an isolated application copy
+        run: |
+          $ErrorActionPreference='Stop'
+          $command=@'
+          #!/bin/zsh
+          set -eu
+          set -o pipefail
+          HERE="${0:A:h}"
+          fail() {
+            print -r -- "$1"
+            print -r -- "未放行应用。按回车关闭。"
+            read -r _reply
+            exit 1
+          }
+          APP="${1:-}"
+          if [[ -z "$APP" && -d "$HERE/无限画布.app" ]]; then APP="$HERE/无限画布.app"; fi
+          if [[ -z "$APP" && -d "$HERE/../无限画布.app" ]]; then APP="$HERE/../无限画布.app"; fi
+          if [[ -z "$APP" && -d "/Applications/无限画布.app" ]]; then APP="/Applications/无限画布.app"; fi
+          if [[ -z "$APP" && -d "$HOME/Applications/无限画布.app" ]]; then APP="$HOME/Applications/无限画布.app"; fi
+          [[ -n "$APP" && -d "$APP" && ! -L "$APP" ]] || fail "请先解压应用，将本脚本与“无限画布.app”放在同一个文件夹，再双击运行。"
+          APP="${APP:A}"
+          IDENTIFIER=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Contents/Info.plist" 2>/dev/null) || fail "无法读取应用信息。"
+          [[ "$IDENTIFIER" == 'com.jc.infinitecanvas.mac' ]] || fail "这不是本测试版无限画布，未修改任何属性。"
+          print -r -- "正在核对无限画布的文件完整性…"
+          /usr/bin/codesign --verify --deep --strict "$APP" || fail "签名完整性校验失败，请重新下载原始测试包；不能用移除隔离来修复损坏文件。"
+          BIN_HASH=$(/usr/bin/shasum -a 256 "$APP/Contents/MacOS/无限画布") || fail "无法核对主程序。"
+          ASAR_HASH=$(/usr/bin/shasum -a 256 "$APP/Contents/Resources/app.asar") || fail "无法核对程序资源。"
+          [[ "${BIN_HASH%% *}" == '564a3a3238a56a90a051e4df2b3bf519df325228cd24e512e24d10f54f82d536' && "${ASAR_HASH%% *}" == 'a90858eccd11f16ff1d1a34bb61c851fe3bde3597b82e7289405c3621490a926' ]] || fail "程序与本修复脚本的版本不匹配，未移除隔离。"
+          print -r -- "校验通过。仅移除以下应用的下载隔离属性："
+          print -r -- "$APP"
+          ATTRIBUTES=$(/usr/bin/xattr -r "$APP") || fail "无法读取应用属性，请检查文件权限。"
+          if [[ "$ATTRIBUTES" == *com.apple.quarantine* ]]; then
+            /usr/bin/xattr -dr com.apple.quarantine "$APP" || fail "移除隔离失败，请检查当前用户是否有权修改该应用。"
+          else
+            print -r -- "应用没有下载隔离属性，无需修改。"
+          fi
+          if [[ "${JC_REPAIR_CHECK_ONLY:-0}" == '1' ]]; then
+            print -r -- "REPAIR_CHECK_OK"
+            exit 0
+          fi
+          print -r -- "正在打开无限画布。此操作不代表 Apple 公证通过，也不能解除其他系统策略拦截。"
+          /usr/bin/open "$APP" || fail "启动失败；下载隔离以外的问题需要根据实际错误排查。"
+          print -r -- "已发起打开。若仍有错误，请保留提示原文。按回车关闭。"
+          read -r _reply
+          
+          '@
+          $command=$command.Replace("`r`n","`n")
+          [IO.File]::WriteAllText((Join-Path $PWD 'repair.command'),$command,[Text.UTF8Encoding]::new($false))
+          zsh -n ./repair.command
+          if($LASTEXITCODE -ne 0){throw 'Command syntax failed'}
+          $zip=Get-ChildItem input -Recurse -Filter 'InfiniteCanvas-*.zip' | Select-Object -First 1
+          New-Item '隔离验证 空格' -ItemType Directory -Force|Out-Null
+          ditto -x -k $zip.FullName (Join-Path $PWD '隔离验证 空格')
+          if($LASTEXITCODE -ne 0){throw 'Mac extraction failed'}
+          $app=Join-Path $PWD '隔离验证 空格/无限画布.app'
+          xattr -w com.apple.quarantine '0081;00000000;JC-validation;' $app
+          if($LASTEXITCODE -ne 0){throw 'Test quarantine setup failed'}
+          $env:JC_REPAIR_CHECK_ONLY='1'
+          zsh ./repair.command $app
+          if($LASTEXITCODE -ne 0){throw 'Scoped quarantine repair failed'}
+          $ignored=& xattr -p com.apple.quarantine $app 2>$null
+          if($LASTEXITCODE -eq 0){throw 'Quarantine not removed'}
+          codesign --verify --deep --strict $app
+          if($LASTEXITCODE -ne 0){throw 'Repair changed bundle integrity'}
+          # Tampering must be refused, with quarantine retained.
+          [IO.File]::AppendAllText((Join-Path $app 'Contents/Resources/app.asar'),'tamper-test')
+          xattr -w com.apple.quarantine '0081;00000000;JC-validation;' $app
+          '' | zsh ./repair.command $app
+          if($LASTEXITCODE -eq 0){throw 'Tampered package incorrectly accepted'}
+          $attribute=& xattr -p com.apple.quarantine $app 2>$null
+          if($LASTEXITCODE -ne 0){throw 'Tampered package lost quarantine'}
+          Write-Output 'MAC_REPAIR_VALIDATED syntax=passed scopedRemoval=passed signedResourcesUnchanged=passed tamperedPackageRefused=passed unicodeAndSpacePath=passed userFinderInstallation=not-tested'
+          $global:LASTEXITCODE=0
