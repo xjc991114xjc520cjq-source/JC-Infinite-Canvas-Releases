@@ -94,6 +94,26 @@ jobs:
           $report|ConvertTo-Json -Depth 5|Set-Content dist/mac-validation.json -Encoding utf8
           Copy-Item native-device-report.json dist/
           $global:LASTEXITCODE = 0
+      - name: Stage Mac installer in its own draft release
+        working-directory: source/mac-app
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version=(Get-Content package.json -Raw|ConvertFrom-Json).version
+          $releaseTag="mac-v$version"
+          $existing=gh release view $releaseTag --repo $env:GITHUB_REPOSITORY --json isDraft 2>$null
+          if($LASTEXITCODE -eq 0){if(-not ($existing|ConvertFrom-Json).isDraft){throw 'Refusing to replace a published Mac release'}}
+          else {
+            $notes=@('Apple 芯片 Mac 测试版；最低 macOS 13。','下载 DMG，将无限画布拖入应用程序。退出旧版后覆盖安装，本机数据目录与钥匙串保留。','此包为临时签名，尚未完成 Apple Developer ID 签名与公证。','早期无更新器的 mac.1/mac.2 需要先覆盖安装一次；mac.3/mac.4 可通过帮助菜单检查更新。新版启动会自动检查 Mac 通道。','更新仅针对 Mac；Windows 更新通道不变。') -join "`n`n"
+            [IO.File]::WriteAllText((Join-Path $PWD 'mac-release-notes.md'),$notes)
+            gh release create $releaseTag --repo $env:GITHUB_REPOSITORY --draft --title "无限画布 Mac $version 测试版" --notes-file mac-release-notes.md --latest=false
+            if($LASTEXITCODE -ne 0){throw 'Mac draft creation failed'}
+          }
+          $dmg=Get-ChildItem dist -Filter '*.dmg' -File|Select-Object -First 1
+          $hash=(Get-FileHash $dmg.FullName).Hash.ToLowerInvariant()+'  '+$dmg.Name
+          [IO.File]::WriteAllText((Join-Path $PWD 'dist/SHA256SUMS-Mac.txt'),$hash+"`n")
+          gh release upload $releaseTag $dmg.FullName dist/SHA256SUMS-Mac.txt --repo $env:GITHUB_REPOSITORY --clobber
+          if($LASTEXITCODE -ne 0){throw 'Mac draft installer upload failed'}
       - uses: actions/upload-artifact@v4
         if: always()
         with:
