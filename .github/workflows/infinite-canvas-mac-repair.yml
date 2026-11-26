@@ -18,7 +18,7 @@ jobs:
         with:
           name: infinite-canvas-mac-arm64-validation
           github-token: ${{ github.token }}
-          run-id: 45743630319
+          run-id: 45747788446
           path: input
       - name: Validate scoped xattr repair on an isolated application copy
         run: |
@@ -39,7 +39,7 @@ jobs:
           if [[ -z "$APP" && -d "$HERE/../无限画布.app" ]]; then APP="$HERE/../无限画布.app"; fi
           if [[ -z "$APP" && -d "/Applications/无限画布.app" ]]; then APP="/Applications/无限画布.app"; fi
           if [[ -z "$APP" && -d "$HOME/Applications/无限画布.app" ]]; then APP="$HOME/Applications/无限画布.app"; fi
-          [[ -n "$APP" && -d "$APP" && ! -L "$APP" ]] || fail "请先解压应用，将本脚本与“无限画布.app”放在同一个文件夹，再双击运行。"
+          [[ -n "$APP" && -d "$APP" && ! -L "$APP" ]] || fail "请先将无限画布.app拖入应用程序文件夹。"
           APP="${APP:A}"
           IDENTIFIER=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Contents/Info.plist" 2>/dev/null) || fail "无法读取应用信息。"
           [[ "$IDENTIFIER" == 'com.jc.infinitecanvas.mac' ]] || fail "这不是本测试版无限画布，未修改任何属性。"
@@ -47,7 +47,7 @@ jobs:
           /usr/bin/codesign --verify --deep --strict "$APP" || fail "签名完整性校验失败，请重新下载原始测试包；不能用移除隔离来修复损坏文件。"
           BIN_HASH=$(/usr/bin/shasum -a 256 "$APP/Contents/MacOS/无限画布") || fail "无法核对主程序。"
           ASAR_HASH=$(/usr/bin/shasum -a 256 "$APP/Contents/Resources/app.asar") || fail "无法核对程序资源。"
-          [[ "${BIN_HASH%% *}" == '564a3a3238a56a90a051e4df2b3bf519df325228cd24e512e24d10f54f82d536' && "${ASAR_HASH%% *}" == 'a90858eccd11f16ff1d1a34bb61c851fe3bde3597b82e7289405c3621490a926' ]] || fail "程序与本修复脚本的版本不匹配，未移除隔离。"
+          [[ "${BIN_HASH%% *}" == '151014f5fef323fef5c92305e920ad417dcab62639f42b9c3572874ba7a6fecf' && "${ASAR_HASH%% *}" == '8d6c7d7ed78897e7c86c7f109c7bea7062846a8f523f9bf30c2878a7bcc70693' ]] || fail "程序与本修复脚本的版本不匹配，未移除隔离。"
           print -r -- "校验通过。仅移除以下应用的下载隔离属性："
           print -r -- "$APP"
           ATTRIBUTES=$(/usr/bin/xattr -r "$APP") || fail "无法读取应用属性，请检查文件权限。"
@@ -75,6 +75,20 @@ jobs:
           ditto -x -k $zip.FullName (Join-Path $PWD '隔离验证 空格')
           if($LASTEXITCODE -ne 0){throw 'Mac extraction failed'}
           $app=Join-Path $PWD '隔离验证 空格/无限画布.app'
+          $dmg=Get-ChildItem input -Recurse -Filter 'InfiniteCanvas-*.dmg' | Select-Object -First 1
+          if(-not $dmg){throw 'DMG missing'}
+          $mount=Join-Path $PWD 'dmg-validation'
+          New-Item $mount -ItemType Directory -Force|Out-Null
+          hdiutil attach $dmg.FullName -readonly -nobrowse -mountpoint $mount
+          if($LASTEXITCODE -ne 0){throw 'DMG mount failed'}
+          try {
+            $dmgApp=Join-Path $mount '无限画布.app'
+            codesign --verify --deep --strict $dmgApp
+            if($LASTEXITCODE -ne 0){throw 'DMG application integrity failed'}
+            if((Get-FileHash (Join-Path $dmgApp 'Contents/Resources/app.asar')).Hash -ne (Get-FileHash (Join-Path $app 'Contents/Resources/app.asar')).Hash){throw 'DMG and ZIP content differ'}
+            $link=Get-Item (Join-Path $mount 'Applications') -Force
+            if($link.LinkTarget -ne '/Applications'){throw 'Applications drag link missing'}
+          } finally { hdiutil detach $mount; if($LASTEXITCODE -ne 0){throw 'DMG detach failed'} }
           xattr -w com.apple.quarantine '0081;00000000;JC-validation;' $app
           if($LASTEXITCODE -ne 0){throw 'Test quarantine setup failed'}
           $env:JC_REPAIR_CHECK_ONLY='1'
@@ -91,5 +105,5 @@ jobs:
           if($LASTEXITCODE -eq 0){throw 'Tampered package incorrectly accepted'}
           $attribute=& xattr -p com.apple.quarantine $app 2>$null
           if($LASTEXITCODE -ne 0){throw 'Tampered package lost quarantine'}
-          Write-Output 'MAC_REPAIR_VALIDATED syntax=passed scopedRemoval=passed signedResourcesUnchanged=passed tamperedPackageRefused=passed unicodeAndSpacePath=passed userFinderInstallation=not-tested'
+          Write-Output 'MAC_REPAIR_VALIDATED dmgMounted=passed dmgContent=passed applicationsLink=passed syntax=passed scopedRemoval=passed signedResourcesUnchanged=passed tamperedPackageRefused=passed unicodeAndSpacePath=passed userFinderInstallation=not-tested'
           $global:LASTEXITCODE=0
