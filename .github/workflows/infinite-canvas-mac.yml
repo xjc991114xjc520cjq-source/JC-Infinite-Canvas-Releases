@@ -60,6 +60,8 @@ jobs:
       - name: Run actual Mac renderer and provider bridge smoke
         working-directory: source/mac-app
         run: |
+          node tests/electron-network.cjs
+          if ($LASTEXITCODE -ne 0) { throw 'Mac native network checks failed' }
           node tests/smoke.cjs
           if ($LASTEXITCODE -ne 0) { throw 'Mac application smoke failed' }
       - name: Build candidate and assess distribution separately
@@ -82,6 +84,8 @@ jobs:
           codesign --verify --deep --strict --verbose=2 $app
           if ($LASTEXITCODE -ne 0) { throw 'Bundle integrity signature verification failed' }
           $env:JC_MAC_SMOKE_APP = Join-Path $app 'Contents/MacOS/无限画布'
+          node tests/electron-network.cjs
+          if ($LASTEXITCODE -ne 0) { throw 'Mac native network checks failed' }
           node tests/smoke.cjs
           if ($LASTEXITCODE -ne 0) { throw 'Packaged Mac application smoke failed' }
           $assessment = & spctl --assess --type execute --verbose=4 $app 2>&1 | Out-String
@@ -109,6 +113,9 @@ jobs:
             gh release create $releaseTag --repo $env:GITHUB_REPOSITORY --draft --title "无限画布 Mac $version 测试版" --notes-file mac-release-notes.md --latest=false --target $env:GITHUB_SHA
             if($LASTEXITCODE -ne 0){throw 'Mac draft creation failed'}
           }
+          $draftId=gh release view $releaseTag --repo $env:GITHUB_REPOSITORY --json databaseId --jq .databaseId
+          gh api -X PATCH "repos/$env:GITHUB_REPOSITORY/releases/$draftId" -f "target_commitish=$env:GITHUB_SHA" -f 'make_latest=false' | Out-Null
+          if($LASTEXITCODE -ne 0){throw 'Mac draft target update failed'}
           $dmg=Get-ChildItem dist -Filter '*.dmg' -File|Select-Object -First 1
           $hash=(Get-FileHash $dmg.FullName).Hash.ToLowerInvariant()+'  '+$dmg.Name
           [IO.File]::WriteAllText((Join-Path $PWD 'dist/SHA256SUMS-Mac.txt'),$hash+"`n")
