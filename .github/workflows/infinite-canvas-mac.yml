@@ -4,7 +4,7 @@ on:
     branches: ['codex/mac-port-*']
     paths: ['.github/workflows/infinite-canvas-mac.yml', 'mac-build-input.json']
 permissions:
-  contents: read
+  contents: write
 jobs:
   mac-arm64:
     runs-on: macos-15
