@@ -1,5 +1,5 @@
 {
-  "tag": "mac-validation-3.1.61-20261126-103114",
-  "sha256": "0aa00f7fc79c31dec6ef80ed87af95921fa71430d25b766082f6f49e7ee2d5b9",
-  "asset": "mac-source-20261127-094513.zip"
+  "asset": "mac-source-20261127-100329.zip",
+  "sha256": "2960e8b07f47db7e2a8980f23c7958c30febe73ae0956b374fbd4621770d5871",
+  "tag": "mac-validation-3.1.61-20261126-103114"
 }
