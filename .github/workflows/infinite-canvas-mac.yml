@@ -1,0 +1,144 @@
+name: Infinite Canvas Mac validation
+on:
+  push:
+    branches: ['codex/mac-port-*']
+    paths: ['.github/workflows/infinite-canvas-mac.yml', 'mac-build-input.json']
+permissions:
+  contents: write
+jobs:
+  mac-arm64:
+    runs-on: macos-15
+    timeout-minutes: 25
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Fetch private draft input and verify hash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $inputSpec = Get-Content mac-build-input.json -Raw | ConvertFrom-Json
+          $asset = if ($inputSpec.asset) { $inputSpec.asset } else { 'mac-source.zip' }
+          gh release download $inputSpec.tag --repo $env:GITHUB_REPOSITORY --pattern $asset --dir input
+          if ($LASTEXITCODE -ne 0) { throw 'Draft source download failed' }
+          $archive = Join-Path 'input' $asset
+          if ((Get-FileHash $archive -Algorithm SHA256).Hash.ToLowerInvariant() -ne $inputSpec.sha256) { throw 'Source hash mismatch' }
+          Expand-Archive $archive source
+          if ((node -p process.arch) -ne 'arm64') { throw 'Apple Silicon runner required' }
+      - name: Install clean Mac dependencies
+        working-directory: source/mac-app
+        run: |
+          npm install -g pnpm@11.25.0
+          if ($LASTEXITCODE -ne 0) { throw 'pnpm install failed' }
+          pnpm install --frozen-lockfile
+          if ($LASTEXITCODE -ne 0) { throw 'Dependency installation failed' }
+          node node_modules/electron/install.js
+          if ($LASTEXITCODE -ne 0) { throw 'Electron runtime missing' }
+      - name: Compile native device service and run core checks
+        working-directory: source/mac-app
+        run: |
+          New-Item native/build -ItemType Directory -Force | Out-Null
+          node node_modules/electron/cli.js native/build-icon.cjs
+          if($LASTEXITCODE -ne 0){throw 'Mac icon asset build failed'}
+          iconutil -c icns native/build/AppIcon.iconset -o native/build/AppIcon.icns
+          if($LASTEXITCODE -ne 0){throw 'Mac icon compilation failed'}
+          xcrun swiftc -O -target arm64-apple-macosx13.0 native/device.swift -o native/build/jc-canvas-device
+          if ($LASTEXITCODE -ne 0) { throw 'Swift build failed' }
+          codesign --force --sign - native/build/jc-canvas-device
+          if ($LASTEXITCODE -ne 0) { throw 'Helper signature failed' }
+          xcrun swiftc -O -target arm64-apple-macosx13.0 native/updater.swift -o native/build/jc-canvas-updater
+          if ($LASTEXITCODE -ne 0) { throw 'Updater Swift build failed' }
+          codesign --force --sign - native/build/jc-canvas-updater
+          if ($LASTEXITCODE -ne 0) { throw 'Updater signature failed' }
+          node --test tests/api-transport.test.cjs tests/core.test.cjs tests/updater.test.cjs tests/download-fetch.test.cjs tests/authorization-startup.test.cjs
+          if ($LASTEXITCODE -ne 0) { throw 'Core tests failed' }
+          $env:JC_MAC_DEVICE_HELPER = Join-Path $PWD 'native/build/jc-canvas-device'
+          node tests/native-device.cjs | Tee-Object native-device-report.json
+          # Hosted VMs may lack Secure Enclave. Keep a separate explicit gate.
+          $global:LASTEXITCODE = 0
+      - name: Run actual Mac renderer and provider bridge smoke
+        working-directory: source/mac-app
+        run: |
+          node tests/electron-network.cjs
+          if ($LASTEXITCODE -ne 0) { throw 'Mac native network checks failed' }
+          node tests/electron-api-transport.cjs
+          if ($LASTEXITCODE -ne 0) { throw 'Mac API binary transport checks failed' }
+          node tests/smoke.cjs
+          if ($LASTEXITCODE -ne 0) { throw 'Mac application smoke failed' }
+      - name: Build candidate and assess distribution separately
+        working-directory: source/mac-app
+        run: |
+          node node_modules/electron-builder/cli.js --mac dmg zip --arm64 --publish never
+          if ($LASTEXITCODE -ne 0) { throw 'Mac packaging failed' }
+          $app = Join-Path $PWD 'dist/mac-arm64/无限画布.app'
+          $plist=Join-Path $app 'Contents/Info.plist'
+          $version=& /usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' $plist
+          $expected=(Get-Content package.json -Raw|ConvertFrom-Json).version
+          if($version -ne $expected){throw 'Bundle version mismatch'}
+          $executable=& /usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' $plist
+          if(-not (Test-Path (Join-Path $app "Contents/MacOS/$executable"))){throw 'Finder entrypoint missing'}
+          $icon=& /usr/libexec/PlistBuddy -c 'Print :CFBundleIconFile' $plist
+          if((Get-FileHash (Join-Path $app "Contents/Resources/$icon")).Hash -ne (Get-FileHash native/build/AppIcon.icns).Hash){throw 'Bundle icon differs from current logo'}
+          Copy-Item web/source-manifest.json dist/
+          Copy-Item native/build/AppIcon-1024.png dist/
+          Copy-Item native/build/icon-layout.json dist/
+          codesign --verify --deep --strict --verbose=2 $app
+          if ($LASTEXITCODE -ne 0) { throw 'Bundle integrity signature verification failed' }
+          $env:JC_MAC_SMOKE_APP = Join-Path $app 'Contents/MacOS/无限画布'
+          node tests/electron-network.cjs
+          if ($LASTEXITCODE -ne 0) { throw 'Mac native network checks failed' }
+          node tests/electron-api-transport.cjs
+          if ($LASTEXITCODE -ne 0) { throw 'Mac API binary transport checks failed' }
+          node tests/smoke.cjs
+          if ($LASTEXITCODE -ne 0) { throw 'Packaged Mac application smoke failed' }
+          $assessment = & spctl --assess --type execute --verbose=4 $app 2>&1 | Out-String
+          $accepted = $LASTEXITCODE -eq 0
+          $report = @{ builtAt=(Get-Date).ToUniversalTime().ToString('o'); run=$env:GITHUB_RUN_ID; architecture='arm64'; renderer='passed'; packagedApp='passed'; codesign='passed'; developerId=$false; notarized=$false; gatekeeperAccepted=$accepted; assessment=$assessment; userInstallation='not-tested'; liveProviders='not-tested'; liveApi='not-tested' }
+          $report | ConvertTo-Json -Depth 5 | Set-Content dist/mac-validation.json -Encoding utf8
+          Get-ChildItem dist -File | Where-Object Extension -In @('.zip','.dmg') | ForEach-Object { (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant() + '  ' + $_.Name } | Set-Content dist/SHA256SUMS.txt
+          $report|Add-Member -NotePropertyName bundleVersion -NotePropertyValue $version
+          $report|Add-Member -NotePropertyName currentIconVerified -NotePropertyValue $true
+          $report|ConvertTo-Json -Depth 5|Set-Content dist/mac-validation.json -Encoding utf8
+          Copy-Item native-device-report.json dist/
+          $global:LASTEXITCODE = 0
+      - name: Stage Mac installer in its own draft release
+        working-directory: source/mac-app
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version=(Get-Content package.json -Raw|ConvertFrom-Json).version
+          $releaseTag="mac-v$version"
+          $existing=gh release view $releaseTag --repo $env:GITHUB_REPOSITORY --json isDraft 2>$null
+          if($LASTEXITCODE -eq 0){if(-not ($existing|ConvertFrom-Json).isDraft){throw 'Refusing to replace a published Mac release'}}
+          else {
+            $notes=@('Apple 芯片 Mac 测试版；最低 macOS 13。','下载 DMG，将无限画布拖入应用程序。退出旧版后覆盖安装，本机数据目录与钥匙串保留。','此包为临时签名，尚未完成 Apple Developer ID 签名与公证。','早期无更新器的 mac.1/mac.2 需要先覆盖安装一次；mac.3/mac.4 可通过帮助菜单检查更新。新版启动会自动检查 Mac 通道。','更新仅针对 Mac；Windows 更新通道不变。') -join "`n`n"
+            [IO.File]::WriteAllText((Join-Path $PWD 'mac-release-notes.md'),$notes)
+            gh release create $releaseTag --repo $env:GITHUB_REPOSITORY --draft --title "无限画布 Mac $version 测试版" --notes-file mac-release-notes.md --latest=false --target $env:GITHUB_SHA
+            if($LASTEXITCODE -ne 0){throw 'Mac draft creation failed'}
+          }
+          $draftId=gh release view $releaseTag --repo $env:GITHUB_REPOSITORY --json databaseId --jq .databaseId
+          gh api -X PATCH "repos/$env:GITHUB_REPOSITORY/releases/$draftId" -f "tag_name=$releaseTag" -f "target_commitish=$env:GITHUB_SHA" -f 'make_latest=false' | Out-Null
+          if($LASTEXITCODE -ne 0){throw 'Mac draft target update failed'}
+          $dmg=Get-ChildItem dist -Filter '*.dmg' -File|Select-Object -First 1
+          $hash=(Get-FileHash $dmg.FullName).Hash.ToLowerInvariant()+'  '+$dmg.Name
+          [IO.File]::WriteAllText((Join-Path $PWD 'dist/SHA256SUMS-Mac.txt'),$hash+"`n")
+          gh release upload $releaseTag $dmg.FullName dist/SHA256SUMS-Mac.txt --repo $env:GITHUB_REPOSITORY --clobber
+          if($LASTEXITCODE -ne 0){throw 'Mac draft installer upload failed'}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: infinite-canvas-mac-arm64-validation
+          path: |
+            source/mac-app/dist/*.zip
+            source/mac-app/dist/*.dmg
+            source/mac-app/dist/*.json
+            source/mac-app/dist/*.txt
+            source/mac-app/dist/*.png
+            source/mac-app/test-results/*.png
+          if-no-files-found: error
+          retention-days: 14
